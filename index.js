@@ -1,9 +1,17 @@
 const cheerio = require("cheerio");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
+const path = require("path");
+
+const { SCRAPER_SAVE_LOCATION = "./" } = process.env;
 
 function getText(node) {
   return node.children[0].data;
+}
+
+function save(p, file) {
+  console.log(path.join(SCRAPER_SAVE_LOCATION, p))
+  fs.writeFileSync(path.join(SCRAPER_SAVE_LOCATION, p), file);
 }
 
 const URL = "https://coronavirus.1point3acres.com/en/#stat";
@@ -58,11 +66,11 @@ async function main() {
   let csv = "";
   for (const k in stateMap) {
     for (const county of stateMap[k]) {
-      const csvCounty = county.slice(0, county.length-1).join(",");
+      const csvCounty = county.slice(0, county.length - 1).join(",");
       csv += `${k},${csvCounty}\n`;
     }
   }
-  fs.writeFileSync("data.csv", csv);
+  save("./data.csv", csv);
   for (const k in stateMap) {
     stateMap[k] = stateMap[k].reduce((p, c) => {
       return {
@@ -72,7 +80,7 @@ async function main() {
     }, {});
   }
 
-  fs.writeFileSync("./data.json", JSON.stringify(stateMap));
+  save("./data.json", JSON.stringify(stateMap));
 }
 
 main();
