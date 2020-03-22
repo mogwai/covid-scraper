@@ -16,7 +16,7 @@ function save(p, file) {
 
 const URL = "https://coronavirus.1point3acres.com/en/#stat";
 async function main() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({args:["--no-sandbox"]});
   const page = await browser.newPage();
   const userAgent =
     "Mozilla/5.0 (X11; Linux x86_64)" +
@@ -54,13 +54,22 @@ async function main() {
         const domCol = counties[j].children;
         const innerCol = [];
         for (let k = 0; k < domCol.length; k++) {
-          innerCol.push(domCol[k].children[0].data);
+	  const dataPoint = domCol[k].children[0].data
+	  //if theres no data, its one of those weird +X for daily change
+          //and we need to push data from the next element
+	  if(!dataPoint){
+             innerCol.push(domCol[k].children[0].next.data)
+          }
+          else{
+             innerCol.push(dataPoint)
+          }
         }
         countyCols.push(innerCol);
       }
       stateMap[stateName] = countyCols;
     } catch (e) {
       console.log("Failed for state", i);
+      console.log(e);
     }
   }
   let csv = "";
